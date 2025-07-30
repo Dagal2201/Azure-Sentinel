@@ -1,0 +1,46 @@
+id: 86321bf3-4d0d-46bb-9ea6-925aa5007879
+name: AuditD - Privilege escalation attempt detected
+description: |
+  'This query identifies privilege escalation attempts'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  // check exit != 0
+  // user specific?
+  // timebin = search_window or completelty remove
+  // to be removed let timeBin = 5m;
+  // REWRITE USING USER_AUTH
+
+  let keys = dynamic(['priv_esc_sudo', 'priv_esc_su'])
+  let EscAttemtps = 5;
+  // getting event ids
+  let auditEventIds = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where key in (keys)
+      | project audit_event_id;
+      // gettings events by their event id
+  let auditEvents = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where audit_event_id in (auditEventIds);
+  auditEvents
+      | summarize EscalactionAttempts = count() by Dvc
+      | where EscalactionAttempts >= EscAttemtps
+      | project TimeGenerated, Dvc, EscalactionAttempts
+      | order by EscalactionAttempts
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

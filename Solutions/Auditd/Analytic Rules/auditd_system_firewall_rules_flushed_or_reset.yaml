@@ -1,0 +1,39 @@
+id: e904cc9b-f503-4674-bba4-6e5103fef10b
+name: AuditD - System firewall rules flushed or reset
+description: |
+  This query detects when firewall rules are flushed or reset for iptables, nftables, ufw, and firewalld
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  // reboot system with auditd and check that this rules NOT triggering
+  let keys =dynamic(["iptables_exec", 
+      "nftables_exec", 
+      "firewall-cmd_exec", 
+      "ufw_exec"]);
+  let auditEventIds = ASim_LinuxAuditdSyslog_V01(disabled=false)
+  | where key in (keys)
+  | project audit_event_id;
+  let auditEvents = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where audit_event_id in (auditEventIds);
+  auditEvents
+      | where all_args has_any ("flush", "reset", "-F", "-X", "-P", "flush", "reload", "--complete-reload", "flush ruleset", "delete table")
+      | project Dvc, TimeGenerated, all_args
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

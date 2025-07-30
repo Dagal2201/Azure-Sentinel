@@ -1,0 +1,40 @@
+id: 8d05bb42-9c3e-4375-9b9d-4583dced13e0
+name: AuditD - Multiple chmod or chown execution attempts on distinct files
+description: |
+  'This query detects chmod and chown execution attempts on various files per host'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  let ModifiedFilesCount = 5;
+  let keys = dynamic(["file_mod_chmod", "file_mod_chown"]);
+  // getting event ids
+  let auditEventIds = ASim_LinuxAuditdSyslog_V01(false)
+      | where key in (keys) and exit == 0
+      | project audit_event_id;
+  // gettings events by their event id
+  let auditEvents = ASim_LinuxAuditdSyslog_V01(false)
+      | where audit_event_id in (auditEventIds);
+  auditEvents
+      | summarize ModificationAttempts = count(), ExecAt=min(TimeGenerated) by Dvc
+      | where ModificationAttempts >= ModifiedFilesCount
+      | project ExecAt, ModificationAttempts, ModifiedFilesCount, Dvc
+      | order by ModificationAttempts
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

@@ -1,0 +1,39 @@
+id: 64ba091a-a152-489f-8703-f9e78300b94f
+name: AuditD - Security-related kernel modules unloaded or removed
+description: |
+  This query tracks security-related kernel modules that could expose the host to potential attacks
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  //unload or remove.
+  //Check reboot will this rule NOT triggering.
+  // not triggers
+  let modules = dynamic(["firewalld", "apparmor", "selinux"]);
+  let keys = dynamic(["kernel_module_calls"]);
+  let auditEventIds = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where key in (keys)
+      | project audit_event_id;
+  let auditEvents = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where audit_event_id in (auditEventIds);
+  auditEvents
+      | where kern_name has_any (modules)
+      | project ModifiedAt=TimeGenerated, kern_name, Dvc, audit_event_id
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

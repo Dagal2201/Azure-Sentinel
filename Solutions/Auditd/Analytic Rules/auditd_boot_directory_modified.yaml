@@ -1,0 +1,32 @@
+id: d1031c7c-f476-49f8-9c9c-341d65ec786d
+name: AuditD - Boot directory modified
+description: |
+  The purpose of this query is to detect malicious changes within the boot folder that could compromise system security upon startup
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  let BootFolderModCount = 3;
+  ASim_LinuxAuditdSyslog_V01(false)
+      | where key == "boot_mod"
+      | summarize BootFolderMods = count(), ModifiedAt=min(TimeGenerated) by Dvc
+      | where BootFolderMods >= BootFolderModCount
+      | project ModifiedAt, Dvc, BootFolderMods
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

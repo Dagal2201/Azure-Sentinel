@@ -1,0 +1,33 @@
+id: f1c40052-0995-4bef-9809-5f796909cc92
+name: AuditD - Multiple nmap executions
+description: |
+  This query identifies the execution of nmap
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  let NmapExecCount = 3;
+  let keys = dynamic(["susp_activity_nmap"]);
+  ASim_LinuxAuditdSyslog_V01(false)
+      | where key in (keys)
+      | summarize NmapExecs = count(), ExecAt=min(TimeGenerated) by Dvc
+      | where NmapExecs >= NmapExecCount
+      | project ExecAt, Dvc, NmapExecs
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

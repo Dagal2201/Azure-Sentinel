@@ -1,0 +1,37 @@
+id: 88373bde-5585-48f6-8ef9-5fd0f33f2161
+name: AuditD - Multiple failed chmod or chown execution attempts
+description: |
+  'This query detects failed chmod and chown execution attempts per host'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  // user specific?
+  // response: cannot be possible
+  let AllowedAttempts = 3;
+  let keys = dynamic(["file_mod_unsuccess", "file_mod_chmod", "file_mod_chown"]);
+  ASim_LinuxAuditdSyslog_V01(false)
+      | where key in (keys) and
+          exit != 0
+      | summarize ModificationAttempts = count(), ModificatedAt=min(TimeGenerated) by Dvc
+      | where ModificationAttempts >= AllowedAttempts
+      | project ModificatedAt, Dvc, ModificationAttempts, AllowedAttempts
+      | order by ModificationAttempts
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

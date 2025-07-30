@@ -1,0 +1,43 @@
+id: 7555b25b-a950-4bce-ba68-a09f29e7e830
+name: AuditD - System firewall. Multiple changes in firewall configuration
+description: |
+  This query detects multiple kind of firewall configuration changes for iptables, nftables, ufw, and firewalld
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  let FirewallChangesCount = 3;
+  let keys = dynamic(["iptables_exec", 
+      "nftables_exec", 
+      "firewall-cmd_exec", 
+      "ufw_exec"]);
+  let excludedArgs = dynamic(['status','-L','list','--get-active-zones', '--list-all-zones', '--list-all', '--list-services', '--list-ports', '--list-rich-rules']);
+  let auditEventIds = ASim_LinuxAuditdSyslog_V01(disabled=false)
+  | where key in (keys)
+  | project audit_event_id;
+  let auditEvents = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where audit_event_id in (auditEventIds)
+      | where not(all_args has_any(excludedArgs));
+  auditEvents
+      | summarize FirewallChanges = count(), ExecAt=min(TimeGenerated) by Dvc
+      | where FirewallChanges >= FirewallChangesCount
+      | project ExecAt, Dvc, FirewallChanges
+      | order by FirewallChanges
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

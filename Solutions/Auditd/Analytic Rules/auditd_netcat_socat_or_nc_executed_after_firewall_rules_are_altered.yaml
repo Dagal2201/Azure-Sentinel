@@ -1,0 +1,42 @@
+id: 55a5ea0e-d182-44ae-bcb9-94c8235eb6e2
+name: AuditD - netcat, socat, or nc Executed After Firewall Rules Are Altered
+description: |
+  This query identifies the execution of netcat, socat, or nc following a firewall change
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  // update rule. add exclutions (list of users, Dvc)
+  // potention new rule. Monitor CmdEvents only -- no firewall status.
+  // response: can't use users -- no users in events found
+  let firewallKeys = dynamic(["iptables_exec", "nftables_exec", "firewall-cmd_exec", "ufw_exec"]);
+  let cmdKeys = dynamic(["susp_activity_ncat", "susp_activity_socat", "susp_activity_nc"]);
+  let excludeDvc = dynamic(["centos"]);
+  let FirewallEvents = ASim_LinuxAuditdSyslog_V01(false)
+      | where key in (firewallKeys);
+  let CmdEvents = ASim_LinuxAuditdSyslog_V01(false)
+      | where key in (cmdKeys)
+      | where not(Dvc has_any (excludeDvc));
+  FirewallEvents
+      | join kind=inner (CmdEvents) on $left.Dvc == $right.Dvc
+      | project-rename FirewallAt=TimeGenerated, CmdAt=TimeGenerated1
+      | where FirewallAt <= CmdAt
+      | project FirewallAt, CmdAt, Dvc, FirewallKey=key, CmdKey=key1
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

@@ -1,0 +1,41 @@
+id: 6290133d-e8f1-4180-a1a3-47eec7dca574
+name: AuditD - Successful login after multiple failed attempts
+description: |
+  'This query identifies successful login that occur after multiple failed login attempts from users'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  let failedAttempts = 10;
+  let failKeys = dynamic(["session_faillog", "session_btmp"]);
+  let successKeys = dynamic(["session_lastlog","session_utmp", "session_wtmp"]);
+  let failedLogins = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where key in (failKeys)
+      | summarize FailedLoginsCount = count(), FailedLoginTime = min(TimeGenerated) by Dvc
+      | where FailedLoginsCount >= failedAttempts
+      | project Dvc, FailedLoginsCount, FailedLoginTime;
+  let successfullLogins = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where key in (successKeys)
+      | project Dvc, SuccessLoginTime=TimeGenerated;
+  failedLogins
+      | join kind=inner (successfullLogins) on $left.Dvc == $right.Dvc
+      | where FailedLoginTime <= SuccessLoginTime
+      | project Dvc, FailedLoginsCount, FailedLoginTime, SuccessLoginTime
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

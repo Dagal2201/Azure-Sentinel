@@ -1,0 +1,36 @@
+id: e8a59de6-e38a-4ba0-88db-a1545550c535
+name: AuditD - Network-related file modified
+description: |
+  This query identifies various network-related file modifications, excluding the hostname and hosts files
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  // tune for resolv.conf. Research
+  let keys = dynamic(["net_conf_resolv", 
+      "net_conf_network", 
+      "net_conf_network_scripts", 
+      "net_conf_interfaces", 
+      "net_conf_netplan", 
+      "net_conf_dnsmasq"]);
+  let EventIds = ASim_LinuxAuditdSyslog_V01(false)
+      | where key in (keys)
+      | project TimeGenerated, Dvc, audit_event_id, key
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

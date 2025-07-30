@@ -1,0 +1,82 @@
+id: fc4a04b9-739a-4bcd-a4aa-e7df293df9a2
+name: AuditD - User was added to the sudo/wheel group
+description: |
+  'Identifies user accounts that granted membership in the sudo or wheel group(s).
+   To enable this rule, the following AuditD rules must be applied:
+      -w /usr/sbin/useradd -p x -k user_mgmt_useradd
+      -w /usr/sbin/adduser -p x -k user_mgmt_adduser
+      -w /usr/sbin/usermod -p x -k user_mgmt_usermod'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- Privilege Escalation
+- Defense Evasion
+relevantTechniques:
+- T1098
+- T1548
+query: |-
+  let sudoGrps = dynamic(["sudo","wheel"]);
+  let keys = dynamic(["user_mgmt_useradd","user_mgmt_adduser","user_mgmt_usermod", "user_mgmt_userdel", "user_mgmt_deluser"]);
+  // getting event ids
+  let auditEventIds = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where key in (keys)
+      | project audit_event_id;
+  // gettings events by their event id
+  let auditEvents = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where audit_event_id in (auditEventIds);
+  // getting adduser and usermod -aG events
+  let AddAddUserEvents = auditEvents
+      | where EventType == 'EXECVE'
+      | extend raw = iif((a0 == 'adduser' and array_length(split(all_args, " ")) == 3),extract_all(@"adduser\s(\w+\S+)\s([\w\S,]+)",all_args)[0],dynamic(null))
+      | extend Username = tostring(raw[0])
+      | extend Group = split(array_slice(raw,1,2)[0],',')
+      | where isnotempty(Username) and Group has_any(sudoGrps)
+      | mv-expand Group
+      | extend Group = tostring(Group)
+      | project CreatedAt=TimeGenerated, Dvc, Username, Group, audit_event_id;    
+  let AddAddUserEvents1 = auditEvents
+      | where EventType == 'EXECVE'
+      | extend raw = iif((a0 == 'adduser' and all_args contains "--ingroup"),extract_all(@"adduser.+\-\-ingroup\s([\w\S,]+)\s(\w+\S+)",all_args)[0],dynamic(null))
+      | extend Username = tostring(raw[1])
+      | extend Group = split(array_slice(array_reverse(raw), 1,2)[0],',')
+      | where isnotempty(Username) and Group has_any(sudoGrps)
+      | mv-expand Group
+      | extend Group = tostring(Group)
+      | project CreatedAt=TimeGenerated, Dvc, Username, Group, audit_event_id; 
+  let AddUsermodEvents = auditEvents
+      | where EventType == 'EXECVE'
+      | extend raw = iif(a0 == 'usermod',extract_all(@"usermod.+(?i)(?:-a.+-g|-aG)\s([\w\S,]+).*\s(\w+\S+)$",all_args)[0],dynamic(null))
+      | extend Username = tostring(raw[1])
+      | extend Group = split(array_slice(array_reverse(raw), 1,2)[0],',')
+      | where isnotnull(Username) and Group has_any(sudoGrps)
+      | mv-expand Group
+      | extend Group = tostring(Group)
+      | project CreatedAt=TimeGenerated, Dvc, Username, Group, audit_event_id; 
+  // uniting addition result
+  let AddUserUnion = union isfuzzy=true AddAddUserEvents, AddAddUserEvents1, AddUsermodEvents;
+  // projecting required data
+  AddUserUnion
+      | project Dvc, 
+          Username, 
+          Group,
+          CreatedAt, 
+          CreateAuditEventId=audit_event_id;
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: FullName
+    columnName: Dvc
+- entityType: Account
+  fieldMappings:
+  - identifier: FullName
+    columnName: Username
+version: 1.0.0
+kind: Scheduled

@@ -1,0 +1,94 @@
+id: 5ac46182-96a8-4a57-a273-215f6dea6d7e
+name: AuditD - A user account created and then deleted in a short period of time
+description: |
+  'Identifies creation and removal of user accounts on the host within an hour by default.
+   Consider changing the "timeDifmin" variable to adjust time difference between user creation and deletion.
+   To enable this rule, the following AuditD rules must be applied:
+      -w /usr/sbin/useradd -p x -k user_mgmt_useradd
+      -w /usr/sbin/userdel -p x -k user_mgmt_userdel
+      -w /usr/sbin/adduser -p x -k user_mgmt_adduser
+      -w /usr/sbin/deluser -p x -k user_mgmt_deluser'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 2h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- Persistence
+- Impact
+relevantTechniques:
+- T1136
+- T1531
+query: |-
+  let keys = dynamic(["user_mgmt_useradd", "user_mgmt_userdel", "user_mgmt_adduser", "user_mgmt_deluser"]);
+  let timeDifmin = 60;
+  // getting event ids
+  let auditEventIds = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where key in (keys)
+      | project audit_event_id;
+  // gettings events by their event id
+  let auditEvents = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where audit_event_id in (auditEventIds);
+  // deleting user
+  let UserDeletionEvents = auditEvents
+      | where EventType == 'EXECVE' and (a0 == 'deluser' or a0 == 'userdel')
+      | extend _deluser_raw_parsedData = iif(a0 == 'deluser',
+          // getting username and group from cmdline
+          set_union(
+              extract_all(@"deluser\s(?:(\w+\S+)\s(\w+\S+)|(\w+\S+))", all_args)[0],
+              extract_all(@"deluser.+(\s(\w+\S+)\s(\w+\S+)$)?\s(\w+\S+)\s(\w+\S+)$|\s(\w+\S+)$", all_args)[0]
+          ),
+          dynamic(null)),
+          _userdel_extractedUser = iif(a0 == 'userdel',tostring(split(all_args, " ")[-1]),"")
+      // getting username
+      | extend deletedUser = iif(
+          a0 == 'deluser',
+          iff(
+              isnotempty(_deluser_raw_parsedData) and array_length(_deluser_raw_parsedData) == 1,
+              tostring(_deluser_raw_parsedData[0]),
+              "" 
+          ),
+          iff(a0 == 'userdel',_userdel_extractedUser,"")
+      )
+      | where isnotempty(deletedUser)
+      | project
+          DeletedAt = TimeGenerated,
+          deletedUser,
+          Dvc,
+          audit_event_id,
+          SyslogMessage;
+  // creating user
+  let UserCreationEvents = auditEvents
+      | where EventType == 'EXECVE' and (a0 == 'adduser' or a0 == 'useradd')
+      | extend addedUser = tostring(split(all_args, " ")[-1])
+      | project
+          CreatedAt = TimeGenerated,
+          addedUser,
+          Dvc,
+          audit_event_id,
+          SyslogMessage;
+  UserCreationEvents
+      | join kind=inner (UserDeletionEvents) on $left.addedUser == $right.deletedUser and $left.Dvc == $right.Dvc
+      | where datetime_diff('minute', CreatedAt, DeletedAt) <= timeDifmin
+      | project Dvc, 
+          Username=addedUser, 
+          CreatedAt, 
+          CreateAuditEventId=audit_event_id, 
+          DeletedAt,
+          DeleteAuditEventId=audit_event_id1;
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: FullName
+    columnName: Dvc
+- entityType: Account
+  fieldMappings:
+  - identifier: FullName
+    columnName: Username
+version: 1.0.0
+kind: Scheduled

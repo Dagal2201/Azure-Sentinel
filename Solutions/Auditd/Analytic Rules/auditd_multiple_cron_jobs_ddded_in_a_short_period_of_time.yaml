@@ -1,0 +1,45 @@
+id: a4a01181-53a2-4f7a-b9d6-51eb14f3232f
+name: AuditD - Multiple cron jobs ddded in a short period of time
+description: |
+  The purpose of this query is to detect numerous cron jobs being added within a brief timeframe
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  let cronModificaitionsTh = 5;
+  let keys = dynamic([
+      "cron_crontab",
+      "cron_hourly",
+      "cron_daily",
+      "cron_weekly",
+      "cron_monthly",
+      "cron_spool"
+      ]);
+  let createSyscalls = dynamic([2, 257, 85, 83, 258, 89, 267, 86, 265]);
+  let CreateEventIds = ASim_LinuxAuditdSyslog_V01(false)
+      | where key in (keys)
+      | where syscall has_any (createSyscalls)
+      | project audit_event_id;
+  let CreateEvents = ASim_LinuxAuditdSyslog_V01(false)
+      | where audit_event_id in (CreateEventIds);
+  CreateEvents
+      | summarize cronModifications = count(), CreatedAt=avg(TimeGenerated)  by Dvc
+      | project CreatedAt, Dvc, cronModifications
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

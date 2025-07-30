@@ -1,0 +1,70 @@
+id: 02f7be51-35fa-4e40-acac-64da7fd3018a
+name: AuditD - Massive user deletion detected
+description: |
+  'Identifies bulk user deletion: several user accounts removed from the host.
+   Consider changing "DeletedUsersTh" to adjust the count of deleted users.
+   To enable this rule, the following AuditD rules must be applied:
+      -w /usr/sbin/userdel -p x -k user_mgmt_userdel
+      -w /usr/sbin/deluser -p x -k user_mgmt_deluser'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 2h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- Persistence
+- Defence Evasion
+relevantTechniques:
+- T1531
+query: |-
+  let keys = dynamic(["user_mgmt_userdel", "user_mgmt_deluser"]);
+  let DeletedUsersTh = 10;
+  // getting event ids
+  let auditEventIds = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where key in (keys)
+      | project audit_event_id;
+  // gettings events by their event id
+  let auditEvents = ASim_LinuxAuditdSyslog_V01(disabled=false)
+      | where audit_event_id in (auditEventIds);
+  // getting user deletion events
+  let UserDeletionEvents = auditEvents
+      | where EventType == 'EXECVE' and (a0 == 'deluser' or a0 == 'userdel')
+      | extend _deluser_raw_parsedData = iif(a0 == 'deluser',
+          set_union(
+              extract_all(@"deluser\s(?:(\w+\S+)\s(\w+\S+)|(\w+\S+))", all_args)[0],
+              extract_all(@"deluser.+(\s(\w+\S+)\s(\w+\S+)$)?\s(\w+\S+)\s(\w+\S+)$|\s(\w+\S+)$", all_args)[0]
+          ),
+          dynamic(null)),
+          _userdel_extractedUser = iif(a0 == 'userdel',tostring(split(all_args, " ")[-1]),"")
+      | extend deletedUser = iif(
+          a0 == 'deluser',
+          // filtering user deletion events from user deletion from group events. ==1 user deleted, >1 user deleted from group
+          iff(isnotempty(_deluser_raw_parsedData) and array_length(_deluser_raw_parsedData) == 1,
+              tostring(_deluser_raw_parsedData[0]),
+              "" 
+          ),
+          iff(a0 == 'userdel',_userdel_extractedUser,"")
+      )
+      | where isnotempty(deletedUser)
+      | project
+          DeletedAt = TimeGenerated,
+          deletedUser,
+          Dvc,
+          audit_event_id;
+  // counting deletion attempts per host
+  UserDeletionEvents
+      | summarize DeletedUsersCount = count(), DeletedAt = min(DeletedAt) by Dvc
+      | where DeletedUsersCount >= DeletedUsersTh
+      | project Dvc, DeletedAt, DeletedUsersCount
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: FullName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

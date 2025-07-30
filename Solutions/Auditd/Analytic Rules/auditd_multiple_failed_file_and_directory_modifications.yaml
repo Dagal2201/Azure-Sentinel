@@ -1,0 +1,41 @@
+id: 9d1a08b6-4794-4ab5-b6b2-2d963a0044e7
+name: AuditD - Multiple failed file and directory modifications
+description: |
+  'This query detects various other file and directory modifications, including remove, unlink, and similar operations'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  // success modification or monitor only one thing
+  // in this case will be only failed modifications
+  // response: done
+  let ModAttempts = 100;
+  let keys = dynamic(["file_mod_unsuccess"]);
+  let auditEventIds = ASim_LinuxAuditdSyslog_V01(false)
+      | where key in (keys) and exit != 0
+      | project audit_event_id;
+  let auditEvents = ASim_LinuxAuditdSyslog_V01(false)
+      | where audit_event_id in (auditEventIds);
+  auditEvents
+      | summarize ActualModAttempts = count(), FailedAt=min(TimeGenerated) by Dvc
+      | where ActualModAttempts >= ModAttempts
+      | project FailedAt, Dvc, ActualModAttempts, ModAttempts
+      | order by ActualModAttempts
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled

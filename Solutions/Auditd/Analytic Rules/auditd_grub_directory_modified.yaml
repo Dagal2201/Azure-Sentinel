@@ -1,0 +1,29 @@
+id: 0a304fd5-82ea-49f9-93ac-5ad67af22294
+name: AuditD - grub directory modified
+description: |
+  This query detect malicious changes within the GRUB folder that could alter the system startup process
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+relevantTechniques:
+- T1189
+query: |-
+  ASim_LinuxAuditdSyslog_V01(false)
+      | where key == "grub_mod"
+      | project ModifiedAt=TimeGenerated, Dvc
+entityMappings:
+- entityType: IP
+  fieldMappings:
+  - identifier: Address
+    columnName: IPCustomEntity
+version: 1.0.0
+kind: Scheduled
