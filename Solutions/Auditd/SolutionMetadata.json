@@ -1,1 +1,21 @@
-{"PublisherId": "scnsoft", "offerId": "scnsoft-sentinel-solution-auditd", "firstPublishDate": "", "lastPublishDate": "", "providers": ["ScienceSoft"], "categories": {"domains": ["Security - Others"], "verticals": []}, "support": {"name": "ScienceSoft USA Inc.", "email": "qlean@scnsoft.com", "tier": "ScienceSoft", "link": "https://scnsoft.com"}}
+{
+    "PublisherId": "scnsoft",
+    "offerId": "scnsoft-sentinel-solution-auditd",
+    "firstPublishDate": "2025-07-31",
+    "lastPublishDate": "2025-07-31",
+    "providers": [
+        "ScienceSoft"
+    ],
+    "categories": {
+        "domains": [
+            "Security - Others"
+        ],
+        "verticals": []
+    },
+    "support": {
+        "name": "ScienceSoft USA Inc.",
+        "email": "qlean@scnsoft.com",
+        "tier": "ScienceSoft",
+        "link": "https://scnsoft.com"
+    }
+}
