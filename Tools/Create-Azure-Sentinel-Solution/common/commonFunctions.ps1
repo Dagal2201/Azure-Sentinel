@@ -50,14 +50,16 @@ $ContentKindDict.Add("SummaryRule", "sr")
 
 function ReadFileContent($filePath) {
     try {
-        if (!(Test-Path -Path "$filePath")) {
-            return $null;
+        # Case-insensitive file existence check
+        $parentDir = Split-Path -Path $filePath -Parent
+        $fileName = [System.IO.Path]::GetFileName($filePath)
+        $actualFile = Get-ChildItem -Path $parentDir -Filter "*" | Where-Object { $_.Name -ieq $fileName }
+        if ($null -eq $actualFile) {
+            Write-Host "filePath $filePath (not found, case-insensitive check)"
+            return $null
         }
-
-        $stream = New-Object System.IO.StreamReader -Arg "$filePath";
-        $content = $stream.ReadToEnd();
-        $stream.Close();
-
+        $filePath = $actualFile.FullName
+        $content = Get-Content -Raw -Path $filePath
         if ($null -eq $content) {
             Write-Host "Error in reading file $filePath"
             return $null;
@@ -334,9 +336,23 @@ function getParserDetails($solutionName,$yaml,$isyaml)
     $variableExpressionRegex = "\[\s?variables\(\'_([\w\W]+)\'\)\s?\]"
     $parserDisplayDetails = New-Object PSObject
 
-    $functionAlias = ($isyaml -eq $true) ? $yaml.FunctionName : $(getFileNameFromPath $file)
-    $displayName = ($isyaml -eq $true) ? "$($yaml.Function.Title)" : "$($fileName)"
-    $name = ($isyaml -eq $true) ? "$($yaml.FunctionName)" : "$($fileName)"
+    if ($isyaml -eq $true) {
+        $functionAlias = $yaml.FunctionName
+    } else {
+        $functionAlias = $(getFileNameFromPath $file)
+    }
+    
+    if ($isyaml -eq $true) {
+        $displayName = "$($yaml.Function.Title)"
+    } else {
+        $displayName = "$($fileName)"
+    }
+    
+    if ($isyaml -eq $true) {
+        $name = "$($yaml.FunctionName)"
+    } else {
+        $name = "$($fileName)"
+    }
     $parserDisplayDetails | Add-Member -NotePropertyName "functionAlias" -NotePropertyValue $functionAlias
     $parserDisplayDetails | Add-Member -NotePropertyName "displayName" -NotePropertyValue $displayName
     $parserDisplayDetails | Add-Member -NotePropertyName "name" -NotePropertyValue $name
@@ -556,7 +572,12 @@ function PrepareSolutionMetadata($solutionMetadataRawContent, $contentResourceDe
             $newMetadata.Properties | Add-Member -Name 'descriptionHtml' -Type NoteProperty -Value $contentToImport.Description;
             $newMetadata.Properties | Add-Member -Name 'contentKind' -Type NoteProperty -Value "Solution";
 
-            $global:baseMainTemplate.variables | Add-Member -NotePropertyName "_solutioncontentProductId" -NotePropertyValue "[concat(take(variables('_solutionId'),50),'-','$($ContentKindDict.ContainsKey("Solution") ? $ContentKindDict["Solution"] : '')','-', uniqueString(concat(variables('_solutionId'),'-','Solution','-',variables('_solutionId'),'-', variables('_solutionVersion'))))]"
+            if ($ContentKindDict.ContainsKey("Solution")) {
+                $solutionContentKind = $ContentKindDict["Solution"]
+            } else {
+                $solutionContentKind = ''
+            }
+            $global:baseMainTemplate.variables | Add-Member -NotePropertyName "_solutioncontentProductId" -NotePropertyValue "[concat(take(variables('_solutionId'),50),'-','$solutionContentKind','-', uniqueString(concat(variables('_solutionId'),'-','Solution','-',variables('_solutionId'),'-', variables('_solutionVersion'))))]"
 	    $newMetadata.Properties | Add-Member -Name 'contentProductId' -Type NoteProperty -Value "[variables('_solutioncontentProductId')]"
             $newMetadata.Properties | Add-Member -Name 'id' -Type NoteProperty -Value "[variables('_solutioncontentProductId')]"
             $newMetadata.Properties | Add-Member -Name 'icon' -Type NoteProperty -Value $contentToImport.Logo;
@@ -1926,6 +1947,15 @@ function PrepareSolutionMetadata($solutionMetadataRawContent, $contentResourceDe
                         if ($templateSpecConnectorData.id -and $templateSpecConnectorData.title) {
                             $global:baseMainTemplate.variables | Add-Member -NotePropertyName "uiConfigId$global:connectorCounter" -NotePropertyValue $templateSpecConnectorData.id
                             $global:baseMainTemplate.variables | Add-Member -NotePropertyName "_uiConfigId$global:connectorCounter" -NotePropertyValue "[variables('uiConfigId$global:connectorCounter')]"
+                        } else {
+                            if (-not $templateSpecConnectorData.id) {
+                                Write-Host "Error: Missing required field 'id' in connector data for file: $file" -ForegroundColor Red
+                            }
+                            if (-not $templateSpecConnectorData.title) {
+                                Write-Host "Error: Missing required field 'title' in connector data for file: $file" -ForegroundColor Red
+                            }
+
+                            exit 1;
                         }
                         $global:baseMainTemplate.variables | Add-Member -NotePropertyName "dataConnectorContentId$global:connectorCounter" -NotePropertyValue $templateSpecConnectorData.id
                         $global:baseMainTemplate.variables | Add-Member -NotePropertyName "_dataConnectorContentId$global:connectorCounter" -NotePropertyValue "[variables('dataConnectorContentId$global:connectorCounter')]"
@@ -3307,7 +3337,7 @@ function PrepareSolutionMetadata($solutionMetadataRawContent, $contentResourceDe
         {
             $dict = $null;   
             $version =  constructVersionNumber($item) 
-            if($version.Major -eq 3)
+            if($version.Major -ge 3)
             {    
                 $dict = @{
                     #'resourcetype' = "Microsoft.OperationInsights/workspaces/providers/contentPackages"

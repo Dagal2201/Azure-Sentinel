@@ -40,6 +40,8 @@
 		"Analytic Rules/AWS_CreatedLambdaPolicytoPrivilegeEscalation.yaml",
 		"Analytic Rules/AWS_CreatedSSMPolicytoPrivilegeEscalation.yaml",
 		"Analytic Rules/AWS_CreationofEncryptKeysWithoutMFA.yaml",
+		"Analytic Rules/AWS_EC2StartupShellScriptChanged.yaml",
+		"Analytic Rules/AWS_S3ObjectExfiltrationByAnonymousUser.yaml",
 		"Analytic Rules/AWS_ECRImageScanningDisabled.yaml",
 		"Analytic Rules/AWS_LogTampering.yaml",
 		"Analytic Rules/AWS_NetworkACLOpenToAllPorts.yaml",
@@ -70,7 +72,9 @@
 		"Analytic Rules/AWS_SSMPubliclyExposed.yaml",
 		"Analytic Rules/SuspiciousAWSCLICommandExecution.yaml",
 		"Analytic Rules/SuspiciousAWSEC2ComputeResourceDeployments.yaml",
-		"Analytic Rules/AWS_UserAccessKeyCreated.yaml"
+		"Analytic Rules/AWS_UserAccessKeyCreated.yaml",
+		"Analytic Rules/AWS_UserIAMEnumeration.yaml",
+		"Analytic Rules/AWS_UnauthorizedInstanceSetUpAttempt.yaml"
 	],
 	"Hunting Queries": [
 		"Hunting Queries/AWS_IAM_PolicyChange.yaml",
