@@ -1,13 +1,21 @@
 id: b656c7b6-1ba8-4a2f-abdf-8b0a5ff59276
 Function:
   Title: Parser for Auditd
-  Description: |
-    This parser is used to parse Auditd events.
   Version: '1.0.0'
   LastUpdated: '2026-02-06'
 Category: Microsoft Sentinel Parser
 FunctionName: ASimLinuxAuditdSyslogV01
 FunctionAlias: ASimLinuxAuditdSyslogV01
+FunctionParam:
+  - Name: starttime
+    Type: datetime
+    Default: datetime(null)
+  - Name: endtime
+    Type: datetime
+    Default: datetime(null)
+  - Name: disabled
+    Type: bool
+    Default: false
 FunctionQuery: |
   let SyslogTags=dynamic(['audispd']);
   let parser = (
