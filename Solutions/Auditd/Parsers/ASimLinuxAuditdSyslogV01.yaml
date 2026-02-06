@@ -1,6 +1,8 @@
 id: f0ad5142-07d0-42d5-bf0a-d1278e03e182
 Function:
   Title: Parser for Auditd
+  Description: |
+    This parser is used to parse Auditd events
   Version: '1.0.0'
   LastUpdated: '2026-02-06'
 Category: Microsoft Sentinel Parser
