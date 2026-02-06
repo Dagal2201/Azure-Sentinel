@@ -17,7 +17,7 @@ triggerOperator: gt
 triggerThreshold: 0
 tactics:
 - Execution
-- Persitence
+- Persistence
 - DefenceEvasion
 relevantTechniques:
 - T1059

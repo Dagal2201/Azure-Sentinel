@@ -15,7 +15,7 @@ queryPeriod: 1h
 triggerOperator: gt
 triggerThreshold: 0
 tactics:
-- Persitence
+- Persistence
 - DefenseEvasion
 - Impact
 relevantTechniques:

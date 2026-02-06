@@ -17,7 +17,7 @@ triggerThreshold: 0
 tactics:
 - DefenseEvasion
 - PrivilegeEscalation
-- Persitence
+- Persistence
 relevantTechniques:
 - T1068
 - T1014

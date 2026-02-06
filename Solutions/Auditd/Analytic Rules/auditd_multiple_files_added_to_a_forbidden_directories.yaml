@@ -17,7 +17,7 @@ triggerOperator: gt
 triggerThreshold: 0
 tactics:
 - DefenseEvasion
-- Persitence
+- Persistence
 - Impact
 relevantTechniques:
 - T1070
