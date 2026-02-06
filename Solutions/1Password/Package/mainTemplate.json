@@ -53,7 +53,7 @@
   },
   "variables": {
     "_solutionName": "1Password",
-    "_solutionVersion": "3.0.2",
+    "_solutionVersion": "3.0.3",
     "solutionId": "1password1617200969773.azure-sentinel-solution-1password",
     "_solutionId": "[variables('solutionId')]",
     "workspaceResourceId": "[resourceId('microsoft.OperationalInsights/Workspaces', parameters('workspace'))]",
@@ -701,30 +701,20 @@
           "parameters": {
             "guidValue": {
               "defaultValue": "[[newGuid()]",
-              "type": "string"
+              "type": "securestring"
             },
             "innerWorkspace": {
               "defaultValue": "[parameters('workspace')]",
-              "type": "string"
-            },
-            "ApiToken": {
-              "defaultValue": "-NA-",
-              "type": "securestring",
-              "minLength": 4
-            },
-            "BaseUrl": {
-              "defaultValue": "Enter BaseUrl value",
-              "type": "string",
-              "minLength": 1
+              "type": "securestring"
             },
             "connectorDefinitionName": {
               "defaultValue": "1Password (Serverless)",
-              "type": "string",
+              "type": "securestring",
               "minLength": 1
             },
             "workspace": {
               "defaultValue": "[parameters('workspace')]",
-              "type": "string"
+              "type": "securestring"
             },
             "dcrConfig": {
               "defaultValue": {
@@ -732,6 +722,16 @@
                 "dataCollectionRuleImmutableId": "data collection rule immutableId"
               },
               "type": "object"
+            },
+            "BaseUrl": {
+              "defaultValue": "BaseUrl",
+              "type": "securestring",
+              "minLength": 1
+            },
+            "ApiToken": {
+              "defaultValue": "ApiToken",
+              "type": "securestring",
+              "minLength": 1
             }
           },
           "variables": {
@@ -926,7 +926,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password data connector with template version 3.0.2",
+        "description": "1Password data connector with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('dataConnectorVersion2')]",
@@ -942,7 +942,7 @@
               "properties": {
                 "connectorUiConfig": {
                   "id": "[variables('_uiConfigId2')]",
-                  "title": "1Password (using Azure Functions)",
+                  "title": "1Password",
                   "publisher": "1Password",
                   "descriptionMarkdown": "The [1Password](https://www.1password.com) solution for Microsoft Sentinel enables you to ingest sign-in attempts, item usage, and audit events from your 1Password Business account using the [1Password Events Reporting API](https://developer.1password.com/docs/events-api). This allows you to monitor and investigate events in 1Password in Microsoft Sentinel along with the other applications and services your organization uses.\n\n**Underlying Microsoft Technologies used:**\n\nThis solution depends on the following technologies, and some of which may be in [Preview](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) state or may incur additional ingestion or operational costs:\n\n-  [Azure Functions](https://azure.microsoft.com/services/functions/#overview)",
                   "additionalRequirementBanner": "These queries are dependent on a parser based on a Kusto Function deployed as part of the solution.",
@@ -1056,7 +1056,7 @@
         "contentSchemaVersion": "3.0.0",
         "contentId": "[variables('_dataConnectorContentId2')]",
         "contentKind": "DataConnector",
-        "displayName": "1Password (using Azure Functions)",
+        "displayName": "1Password",
         "contentProductId": "[variables('_dataConnectorcontentProductId2')]",
         "id": "[variables('_dataConnectorcontentProductId2')]",
         "version": "[variables('dataConnectorVersion2')]"
@@ -1098,7 +1098,7 @@
       "kind": "GenericUI",
       "properties": {
         "connectorUiConfig": {
-          "title": "1Password (using Azure Functions)",
+          "title": "1Password",
           "publisher": "1Password",
           "descriptionMarkdown": "The [1Password](https://www.1password.com) solution for Microsoft Sentinel enables you to ingest sign-in attempts, item usage, and audit events from your 1Password Business account using the [1Password Events Reporting API](https://developer.1password.com/docs/events-api). This allows you to monitor and investigate events in 1Password in Microsoft Sentinel along with the other applications and services your organization uses.\n\n**Underlying Microsoft Technologies used:**\n\nThis solution depends on the following technologies, and some of which may be in [Preview](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) state or may incur additional ingestion or operational costs:\n\n-  [Azure Functions](https://azure.microsoft.com/services/functions/#overview)",
           "graphQueries": [
@@ -1189,7 +1189,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password Workbook with template version 3.0.2",
+        "description": "1Password Workbook with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('workbookVersion1')]",
@@ -1275,7 +1275,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Changes to firewall rules_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Changes to firewall rules_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject1').analyticRuleVersion1]",
@@ -1320,8 +1320,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -1329,8 +1329,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -1339,13 +1339,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -1398,7 +1398,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Changes to SSO configuration_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Changes to SSO configuration_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject2').analyticRuleVersion2]",
@@ -1443,8 +1443,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -1452,8 +1452,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -1465,13 +1465,13 @@
                   "alertDynamicProperties": []
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -1524,7 +1524,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Disable MFA factor or type for all user accounts_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Disable MFA factor or type for all user accounts_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject3').analyticRuleVersion3]",
@@ -1569,8 +1569,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -1578,8 +1578,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -1588,13 +1588,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -1647,7 +1647,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Log Ingestion Failure_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Log Ingestion Failure_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject4').analyticRuleVersion4]",
@@ -1691,13 +1691,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "5h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "5h",
                     "enabled": false
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -1750,7 +1750,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Manual account creation_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Manual account creation_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject5').analyticRuleVersion5]",
@@ -1795,8 +1795,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -1804,8 +1804,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   },
@@ -1813,8 +1813,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "TargetUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "TargetUsername"
                       }
                     ]
                   }
@@ -1823,13 +1823,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AnyAlert",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -1882,7 +1882,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - New service account integration created_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - New service account integration created_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject6').analyticRuleVersion6]",
@@ -1927,8 +1927,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -1936,8 +1936,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -1946,13 +1946,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2005,7 +2005,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Non-privileged vault user permission change_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Non-privileged vault user permission change_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject7').analyticRuleVersion7]",
@@ -2050,8 +2050,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -2059,8 +2059,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "TargetUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "TargetUsername"
                       }
                     ]
                   },
@@ -2068,8 +2068,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -2078,13 +2078,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2137,7 +2137,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Potential insider privilege escalation via group_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Potential insider privilege escalation via group_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject8').analyticRuleVersion8]",
@@ -2182,8 +2182,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -2191,8 +2191,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "TargetUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "TargetUsername"
                       }
                     ]
                   },
@@ -2200,8 +2200,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -2210,13 +2210,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2269,7 +2269,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Potential insider privilege escalation via vault_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Potential insider privilege escalation via vault_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject9').analyticRuleVersion9]",
@@ -2314,8 +2314,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -2323,8 +2323,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "TargetUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "TargetUsername"
                       }
                     ]
                   },
@@ -2332,8 +2332,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -2342,13 +2342,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2401,7 +2401,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Privileged vault permission change_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Privileged vault permission change_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject10').analyticRuleVersion10]",
@@ -2446,8 +2446,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -2455,8 +2455,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "TargetUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "TargetUsername"
                       }
                     ]
                   },
@@ -2464,8 +2464,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -2474,13 +2474,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2533,7 +2533,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Secret extraction post vault access change by administrator_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Secret extraction post vault access change by administrator_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject11').analyticRuleVersion11]",
@@ -2578,8 +2578,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "TargetUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "TargetUsername"
                       }
                     ]
                   },
@@ -2587,8 +2587,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -2597,13 +2597,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2656,7 +2656,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Service account integration token adjustment_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Service account integration token adjustment_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject12').analyticRuleVersion12]",
@@ -2701,8 +2701,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -2710,8 +2710,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -2720,13 +2720,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2779,7 +2779,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Successful anomalous sign-in_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Successful anomalous sign-in_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject13').analyticRuleVersion13]",
@@ -2824,8 +2824,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "TargetUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "TargetUsername"
                       }
                     ]
                   },
@@ -2833,8 +2833,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -2846,13 +2846,13 @@
                   "alertDynamicProperties": []
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": false
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -2905,7 +2905,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - User account MFA settings changed_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - User account MFA settings changed_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject14').analyticRuleVersion14]",
@@ -2951,8 +2951,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -2960,8 +2960,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -2970,13 +2970,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -3029,7 +3029,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - User added to privileged group_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - User added to privileged group_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject15').analyticRuleVersion15]",
@@ -3074,8 +3074,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "ActorUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "ActorUsername"
                       }
                     ]
                   },
@@ -3083,8 +3083,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "TargetUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "TargetUsername"
                       }
                     ]
                   },
@@ -3092,8 +3092,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -3102,13 +3102,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "30m",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "30m",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -3161,7 +3161,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Vault export post account creation_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Vault export post account creation_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject16').analyticRuleVersion16]",
@@ -3208,8 +3208,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "TargetUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "TargetUsername"
                       }
                     ]
                   },
@@ -3217,8 +3217,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -3227,13 +3227,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -3286,7 +3286,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Vault export prior to account suspension or deletion_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Vault export prior to account suspension or deletion_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject17').analyticRuleVersion17]",
@@ -3331,8 +3331,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "TargetUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "TargetUsername"
                       }
                     ]
                   },
@@ -3340,8 +3340,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -3350,13 +3350,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -3409,7 +3409,7 @@
         "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
       ],
       "properties": {
-        "description": "1Password - Vault export_AnalyticalRules Analytics Rule with template version 3.0.2",
+        "description": "1Password - Vault export_AnalyticalRules Analytics Rule with template version 3.0.3",
         "mainTemplate": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
           "contentVersion": "[variables('analyticRuleObject18').analyticRuleVersion18]",
@@ -3454,8 +3454,8 @@
                     "entityType": "Account",
                     "fieldMappings": [
                       {
-                        "columnName": "TargetUsername",
-                        "identifier": "FullName"
+                        "identifier": "FullName",
+                        "columnName": "TargetUsername"
                       }
                     ]
                   },
@@ -3463,8 +3463,8 @@
                     "entityType": "IP",
                     "fieldMappings": [
                       {
-                        "columnName": "SrcIpAddr",
-                        "identifier": "Address"
+                        "identifier": "Address",
+                        "columnName": "SrcIpAddr"
                       }
                     ]
                   }
@@ -3473,13 +3473,13 @@
                   "aggregationKind": "SingleAlert"
                 },
                 "incidentConfiguration": {
-                  "createIncident": true,
                   "groupingConfiguration": {
                     "reopenClosedIncident": false,
-                    "lookbackDuration": "1h",
                     "matchingMethod": "AllEntities",
+                    "lookbackDuration": "1h",
                     "enabled": true
-                  }
+                  },
+                  "createIncident": true
                 }
               }
             },
@@ -3528,7 +3528,7 @@
       "apiVersion": "2023-04-01-preview",
       "location": "[parameters('workspace-location')]",
       "properties": {
-        "version": "3.0.2",
+        "version": "3.0.3",
         "kind": "Solution",
         "contentSchemaVersion": "3.0.0",
         "displayName": "1Password",

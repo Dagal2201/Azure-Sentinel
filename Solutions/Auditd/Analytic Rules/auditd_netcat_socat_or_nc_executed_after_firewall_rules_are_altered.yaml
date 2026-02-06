@@ -1,0 +1,55 @@
+id: 5559377a-bd5b-4c68-9e32-cf17cf07aa2a
+name: AuditD - netcat, socat, or nc Executed After Firewall Rules Are Altered
+description: |
+  'This query identifies the execution of netcat, socat, or nc following a firewall change
+  To enable this rule, the following AuditD rules must be applied:
+    -w /usr/bin/nc -p x -k susp_netcat_exec
+    -w /usr/bin/netcat -p x -k susp_netcat_exec
+    -w /usr/bin/socat -p x -k susp_socat_exec
+    -w /usr/sbin/nft -p x -k nftables_exec
+    -w /usr/bin/firewall-cmd -p x -k firewall-cmd_exec
+    -w /usr/sbin/ufw -p x -k ufw_exec'
+    For Debian/Ubuntu:
+    -w /usr/sbin/xtables-legacy-multi -p x -k iptables_exec
+    For CentOS/RHEL:
+    -w /usr/sbin/xtables-nft-multi -p x -k iptables_exec'
+severity: High
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- Execution
+- LateralMovement
+- DefenceEvasion
+relevantTechniques:
+- T1059
+- T1021
+- T1562.001
+query: |
+  let firewallKeys = dynamic(["iptables_exec", "nftables_exec", "firewall-cmd_exec", "ufw_exec"]);
+  let cmdKeys = dynamic(["susp_activity_ncat", "susp_activity_socat", "susp_activity_nc"]);
+  // exclude hosts (hostname) from correlation here
+  let excludeDvc = dynamic(["centos"]);
+  let FirewallEvents = ASimLinuxAuditdSyslogV01(false)
+      | where key in (firewallKeys);
+  let CmdEvents = ASimLinuxAuditdSyslogV01(false)
+      | where key in (cmdKeys)
+      | where not(Dvc has_any (excludeDvc));
+  FirewallEvents
+      | join kind=inner (CmdEvents) on $left.Dvc == $right.Dvc
+      | project-rename FirewallAt=TimeGenerated, CmdAt=TimeGenerated1
+      | where FirewallAt <= CmdAt
+      | project FirewallAt, CmdAt, Dvc, FirewallKey=key, CmdKey=key1
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

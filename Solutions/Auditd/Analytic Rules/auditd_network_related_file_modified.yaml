@@ -1,0 +1,46 @@
+id: 0f340f75-59ce-43bd-bb10-ac299d7ba745
+name: AuditD - Network-related file modified
+description: |
+  'This query identifies various network-related file modifications, excluding the hostname and hosts files
+  To enable this rule, the following AuditD rules must be applied:
+    -w /etc/network/interfaces -p wa -k net_conf_interfaces
+    -w /etc/netplan/ -p wa -k net_conf_netplan
+    -w /etc/sysconfig/network-scripts/ -p wa -k net_conf_network-scripts
+    -w /etc/resolv.conf -p wa -k net_conf_resolv
+    -w /etc/NetworkManager/NetworkManager.conf -p wa -k net_conf_nm
+    -w /etc/NetworkManager/system-connections/ -p wa -k net_conf_nm_connections'
+severity: Informational
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- DefenseEvasion
+- Persitence
+- Impact
+relevantTechniques:
+- T1565
+- T1609
+query: |
+  let keys = dynamic([
+      "net_conf_resolv", 
+      "net_conf_network", 
+      "net_conf_network_scripts", 
+      "net_conf_interfaces", 
+      "net_conf_netplan", 
+      "net_conf_dnsmasq"]);
+  let EventIds = ASimLinuxAuditdSyslogV01(false)
+      | where key in (keys)
+      | project TimeGenerated, Dvc, auditEventId, key
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

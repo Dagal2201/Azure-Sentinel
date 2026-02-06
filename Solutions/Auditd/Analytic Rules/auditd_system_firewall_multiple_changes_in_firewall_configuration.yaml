@@ -1,0 +1,64 @@
+id: b5876aa4-4e61-4d36-94da-3845e80e5462
+name: AuditD - System firewall. Multiple changes in firewall configuration
+description: |
+  'This query detects multiple kind of firewall configuration changes for iptables, nftables, ufw, and firewalld
+  To enable this rule, the following AuditD rules must be applied:
+    -w /usr/sbin/nft -p x -k nftables_exec
+    -w /usr/bin/firewall-cmd -p x -k firewall-cmd_exec
+    -w /usr/sbin/ufw -p x -k ufw_exec'
+    For Debian/Ubuntu: 
+    -w /usr/sbin/xtables-legacy-multi -p x -k iptables_exec
+    For CentOS/RHEL:
+    -w /usr/sbin/xtables-nft-multi -p x -k iptables_exec'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- DefenseEvasion
+- Persitence
+- Impact
+relevantTechniques:
+- T1499
+- T1562.001
+- T1609
+query: |-
+  let FirewallChangesCount = 3;
+  let keys = dynamic(["iptables_exec", 
+      "nftables_exec", 
+      "firewall-cmd_exec", 
+      "ufw_exec"]);
+  let excludedArgs = dynamic([
+      'status',
+      '-L',
+      'list',
+      '--get-active-zones', 
+      '--list-all-zones',
+      '--list-all',
+      '--list-services',
+      '--list-ports',
+      '--list-rich-rules']);
+  let auditEventIds = ASimLinuxAuditdSyslogV01(disabled=false)
+  | where key in (keys)
+  | project auditEventId;
+  let auditEvents = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where auditEventId in (auditEventIds)
+      | where not(allArgs has_any(excludedArgs));
+  auditEvents
+      | summarize FirewallChanges = count(), ExecAt=min(TimeGenerated) by Dvc
+      | where FirewallChanges >= FirewallChangesCount
+      | project ExecAt, Dvc, FirewallChanges
+      | order by FirewallChanges
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

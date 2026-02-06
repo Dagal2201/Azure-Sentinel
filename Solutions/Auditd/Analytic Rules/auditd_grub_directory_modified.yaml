@@ -1,0 +1,35 @@
+id: e504ddd0-e7f5-47a0-af69-0a0fef0b1aa5
+name: AuditD - grub directory modified
+description: |
+  'This query detect malicious changes within the GRUB folder that could alter the system startup process
+  To enable this rule, the following AuditD rules must be applied:
+    -w /boot/grub -p wa -k grub_mod'
+severity: High
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- Persitence
+- DefenseEvasion
+- Impact
+relevantTechniques:
+- T1014
+- T1529
+- T1547
+query: |
+  ASimLinuxAuditdSyslogV01(false)
+      | where key == "grub_mod"
+      | project ModifiedAt=TimeGenerated, Dvc
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

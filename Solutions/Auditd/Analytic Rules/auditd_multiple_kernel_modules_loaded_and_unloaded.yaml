@@ -1,0 +1,46 @@
+id: 0ff12308-f2b3-49dc-821f-625c7e4caf3c
+name: AuditD - Multiple kernel modules loaded and unloaded
+description: |
+  'This query tracks multiple kernel operation events for each host
+  To enable this rule, the following AuditD rules must be applied:
+    -w /usr/bin/kmod -p x -k kern_kmod'
+severity: Medium
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- DefenseEvasion
+- PrivilegeEscalation
+- Persitence
+relevantTechniques:
+- T1068
+- T1014
+- T1218
+query: |
+  let ModuleActionCount = 5;
+  let keys = dynamic(["kern_kmod"]);
+  let kernCalls = dynamic(['insmod', 'modprobe', 'rmmod', '-r']);
+  let auditEventIds = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where key in (keys) and exit != 0
+      | project auditEventId;
+  let auditEvents = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where auditEventId in (auditEventIds);
+  auditEvents
+      | where allArgs has_any (kernCalls)
+      | summarize MouduleActions = count(), ModifiedAt=min(TimeGenerated) by Dvc
+      | where MouduleActions >= ModuleActionCount
+      | project Dvc, ModifiedAt, MouduleActions
+      | order by MouduleActions
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

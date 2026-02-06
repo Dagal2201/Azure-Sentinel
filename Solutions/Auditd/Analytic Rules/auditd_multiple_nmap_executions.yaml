@@ -1,0 +1,39 @@
+id: 0aa4cb9a-6b03-47a0-ae62-3afb2a4402dd
+name: AuditD - Multiple nmap executions
+description: |
+  'This query identifies the execution of nmap
+  To enable this rule, the following AuditD rules must be applied:
+    -w /usr/bin/nmap -p x -k susp_activity_nmap'
+severity: Medium
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- LateralMovement
+- Reconnaissance
+- Execution
+relevantTechniques:
+- T1021
+- T1059
+- T1595
+query: |
+  let NmapExecCount = 3;
+  let keys = dynamic(["susp_activity_nmap"]);
+  ASimLinuxAuditdSyslogV01(false)
+      | where key in (keys)
+      | summarize NmapExecs = count(), ExecAt=min(TimeGenerated) by Dvc
+      | where NmapExecs >= NmapExecCount
+      | project ExecAt, Dvc, NmapExecs
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

@@ -1,0 +1,61 @@
+id: d6fb82dc-2597-4a4f-a0c3-0fc77737376b
+name: AuditD - System firewall rules flushed or reset
+description: |
+  'This query detects when firewall rules are flushed or reset for iptables, nftables, ufw, and firewalld
+  To enable this rule, the following AuditD rules must be applied:
+    -w /usr/sbin/nft -p x -k nftables_exec
+    -w /usr/bin/firewall-cmd -p x -k firewall-cmd_exec
+    -w /usr/sbin/ufw -p x -k ufw_exec'
+    For Debian/Ubuntu: 
+    -w /usr/sbin/xtables-legacy-multi -p x -k iptables_exec
+    For CentOS/RHEL: 
+    -w /usr/sbin/xtables-nft-multi -p x -k iptables_exec'
+severity: High
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- DefenseEvasion
+- Persitence
+- Impact
+relevantTechniques:
+- T1499
+- T1562.001
+- T1609
+query: |-
+  let keys =dynamic([
+      "iptables_exec", 
+      "nftables_exec", 
+      "firewall-cmd_exec", 
+      "ufw_exec"]);
+  let args = dynamic([
+      "flush", 
+      "reset", 
+      "-F", 
+      "-X", 
+      "-P", 
+      "flush ruleset", 
+      "delete table", 
+      "reload", 
+      "--complete-reload"]);
+  let auditEventIds = ASimLinuxAuditdSyslogV01(disabled=false)
+  | where key in (keys)
+  | project auditEventId;
+  let auditEvents = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where auditEventId in (auditEventIds);
+  auditEvents
+      | where allArgs has_any (args)
+      | project Dvc, TimeGenerated, allArgs
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

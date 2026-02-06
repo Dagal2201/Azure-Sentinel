@@ -1,0 +1,43 @@
+id: 2085c6ee-39e6-4f42-9043-cf2f1850d99d
+name: AuditD - Hostname changed via setdomain or sethostname command execution
+description: |
+  'This query detects hostname modifications performed by executing the setdomain or sethostname commands
+  To enable this rule, the following AuditD rules must be applied:
+    -a always,exit -F arch=b64 -S sethostname -S setdomainname -F auid!=-1 -k net_domain_host_name_b64'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- DefenseEvasion
+- Persitence
+- Impact
+relevantTechniques:
+- T1565
+- T1609
+query: |
+  let keys = dynamic(["net_domain_host_name_b64"])
+  // getting event ids
+  let auditEventIds = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where key in (keys)
+      | project auditEventId;
+  // gettings events by their event id
+  let auditEvents = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where auditEventId in (auditEventIds);
+  auditEvents
+      | summarize ExecCount = count(), ExecAt=min(TimeGenerated) by Dvc
+      | project ExecAt, Dvc, ExecCount
+      | order by ExecCount
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

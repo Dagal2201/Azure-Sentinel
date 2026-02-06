@@ -1,0 +1,20 @@
+{
+    "PublisherId": "scnsoft",
+    "offerId": "scnsoft-azure-sentinel-auditd",
+    "firstPublishDate": "2026-02-06",
+    "lastPublishDate": "2026-02-06",
+    "providers": [
+        "ScienceSoft"
+    ],
+    "categories": {
+        "domains": [
+            "Security - Others"
+        ]
+    },
+    "support": {
+        "name": "ScienceSoft USA Inc.",
+        "email": "qlean@scnsoft.com",
+        "tier": "Partner",
+        "link": "https://scnsoft.com/security/siem"
+    }
+}

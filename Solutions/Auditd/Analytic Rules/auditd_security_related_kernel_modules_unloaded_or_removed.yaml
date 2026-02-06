@@ -1,0 +1,41 @@
+id: df186878-9aef-4bde-811b-8236ac440898
+name: AuditD - Security-related kernel modules unloaded or removed
+description: |
+  'This query tracks security-related kernel modules that could expose the host to potential attacks
+  To enable this rule, the following AuditD rules must be applied:
+    -w /usr/bin/kmod -p x -k kern_kmod'
+severity: High
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- DefenseEvasion
+- PrivilegeEscalation
+- Persitence
+relevantTechniques:
+- T1068
+- T1014
+query: |-
+  let modules = dynamic(["firewalld", "apparmor", "selinux"]);
+  let keys = dynamic(["kern_kmod"]);
+  let auditEventIds = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where key in (keys)
+      | project auditEventId;
+  let auditEvents = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where auditEventId in (auditEventIds);
+  auditEvents
+      | where kernName has_any (modules)
+      | project ModifiedAt=TimeGenerated, kernName, Dvc, auditEventId
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

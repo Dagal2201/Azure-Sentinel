@@ -1,0 +1,49 @@
+id: 98281c39-df76-4255-8814-af1a62a08146
+name: AuditD - Successful login after multiple failed attempts
+description: |
+  'This query identifies successful login that occur after multiple failed login attempts from users
+  To enable this rule, the following AuditD rules must be applied:
+    -w /var/run/utmp -p wa -k session_utmp
+    -w /var/log/wtmp -p wa -k session_wtmp
+    -w /var/log/btmp -p wa -k session_btmp
+    -w /var/log/lastlog -p wa -k session_lastlog
+    -w /var/log/faillog -p wa -k session_faillog'
+severity: Medium
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- CredentailAccess
+- InitialAccess
+relevantTechniques:
+- T1110
+- T1078
+query: |-
+  let failedAttempts = 10;
+  let failKeys = dynamic(["session_faillog", "session_btmp"]);
+  let successKeys = dynamic(["session_lastlog","session_utmp", "session_wtmp"]);
+  let failedLogins = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where key in (failKeys)
+      | summarize FailedLoginsCount = count(), FailedLoginTime = min(TimeGenerated) by Dvc
+      | where FailedLoginsCount >= failedAttempts
+      | project Dvc, FailedLoginsCount, FailedLoginTime;
+  let successfullLogins = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where key in (successKeys)
+      | project Dvc, SuccessLoginTime=TimeGenerated;
+  failedLogins
+      | join kind=inner (successfullLogins) on $left.Dvc == $right.Dvc
+      | where FailedLoginTime <= SuccessLoginTime
+      | project Dvc, FailedLoginsCount, FailedLoginTime, SuccessLoginTime
+entityMappings:
+- entityType: Dvc
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

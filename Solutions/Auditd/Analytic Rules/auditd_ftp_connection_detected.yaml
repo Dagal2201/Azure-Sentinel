@@ -1,0 +1,44 @@
+id: 5381cb6b-6186-4082-b606-197fc94491ce
+name: AuditD - Ftp connection detected
+description: |
+  'This query is designed to flag FTP usage that could indicate malicious data transfer, such as infiltration or exfiltration
+  To enable this rule, the following AuditD rules must be applied:
+    -w /usr/bin/ftp -p x -k susp_activity_ftp'
+severity: High
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- Exfiltration
+- CommandAndControl
+- Impact
+relevantTechniques:
+- T1048
+- T1041
+- T1565
+query: |
+  let keys = dynamic(["susp_activity_ftp"]);
+  // getting event ids
+  let auditEventIds = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where key in (keys)
+      | project auditEventId;
+  // gettings events by their event id
+  let auditEvents = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where auditEventId in (auditEventIds);
+  // formatting output
+  auditEvents
+      | where isnotempty(allArgs)
+      | project ExecAt=TimeGenerated, Dvc, auditEventId, allArgs
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

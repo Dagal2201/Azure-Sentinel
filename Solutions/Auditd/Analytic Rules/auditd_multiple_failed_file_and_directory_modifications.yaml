@@ -1,0 +1,44 @@
+id: 931425a8-0cce-4bd5-8243-1526fe80bf92
+name: AuditD - Multiple failed file and directory modifications
+description: |
+  'This query detects various other unsuccessfull file and directory modifications, including remove, unlink, and similar operations
+  To enable this rule, the following AuditD rules must be applied:
+    -a always,exit -F arch=b64 -S rename -S renameat -S truncate -S setxattr -S lsetxattr -S removexattr -S lremovexattr -F auid!=-1 -F exit!=0 -k file_mod_unsuccess'
+severity: Medium
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- DefenseEvasion
+- Persitence
+- Impact
+relevantTechniques:
+- T1070
+- T1458
+- T1548
+query: |
+  let ModAttempts = 100;
+  let keys = dynamic(["file_mod_unsuccess"]);
+  let auditEventIds = ASimLinuxAuditdSyslogV01(false)
+      | where key in (keys) and exit != 0
+      | project auditEventId;
+  let auditEvents = ASimLinuxAuditdSyslogV01(false)
+      | where auditEventId in (auditEventIds);
+  auditEvents
+      | summarize ActualModAttempts = count(), FailedAt=min(TimeGenerated) by Dvc
+      | where ActualModAttempts >= ModAttempts
+      | project FailedAt, Dvc, ActualModAttempts, ModAttempts
+      | order by ActualModAttempts
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

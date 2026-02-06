@@ -1,0 +1,56 @@
+id: e6f746b1-1e8a-4529-a7f1-d1b69a8a0619
+name: AuditD - Multiple cron jobs ddded in a short period of time
+description: |
+  'The purpose of this query is to detect numerous cron jobs being added within a brief timeframe
+  To enable this rule, the following AuditD rules must be applied:
+    -w /etc/cron.d/ -p wa -k cron_crond
+    -w /etc/cron.daily/ -p wa -k cron_daily
+    -w /etc/cron.hourly/ -p wa -k cron_hourly
+    -w /etc/cron.monthly/ -p wa -k cron_monthly
+    -w /etc/cron.weekly/ -p wa -k cron_weekly
+    -w /etc/crontab -p wa -k cron_crontab
+    -w /var/spool/cron/ -p wa -k cron_spool'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- Persitence
+- DefenseEvasion
+relevantTechniques:
+- T1053
+- T1070
+query: |
+  let cronModificaitionsTh = 5;
+  let keys = dynamic([
+      "cron_crontab",
+      "cron_hourly",
+      "cron_daily",
+      "cron_weekly",
+      "cron_monthly",
+      "cron_spool",
+      "cron_crond"
+      ]);
+  let createSyscalls = dynamic([2, 257, 85, 83, 258, 89, 267, 86, 265]);
+  let CreateEventIds = ASimLinuxAuditdSyslogV01(false)
+      | where key in (keys)
+      | where syscall has_any (createSyscalls)
+      | project auditEventId;
+  let CreateEvents = ASimLinuxAuditdSyslogV01(false)
+      | where auditEventId in (CreateEventIds);
+  CreateEvents
+      | summarize cronModifications = count(), CreatedAt=avg(TimeGenerated)  by Dvc
+      | project CreatedAt, Dvc, cronModifications
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

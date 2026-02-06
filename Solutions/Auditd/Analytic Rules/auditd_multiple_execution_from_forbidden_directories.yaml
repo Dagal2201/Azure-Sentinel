@@ -1,0 +1,40 @@
+id: eae71e72-7167-4d26-aef5-677777f05956
+name: AuditD - Multiple execution from forbidden directories
+description: |
+  'This query aims to detect multiple executions originating from a user-specified list of forbidden directories
+  Fill the "keys" variable in the Kusto query with the keys you used in your AuditD rules.
+  To enable this rule, the following AuditD rules must be applied for each directory you want to monitor:
+    -w <path-to-dir> -p x -k <key>'
+severity: Low
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- Execution
+- Persitence
+- DefenceEvasion
+relevantTechniques:
+- T1059
+- T1053
+- T1070
+query: |
+  let SuspDirOpsCount = 5;
+  let keys = dynamic([]);
+  ASimLinuxAuditdSyslogV01(false)
+      | where key in (keys)
+      | summarize SuspDirOps = count(), ExecAt=min(TimeGenerated) by Dvc
+      | where SuspDirOps >= SuspDirOpsCount
+      | project ExecAt, Dvc, SuspDirOps
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

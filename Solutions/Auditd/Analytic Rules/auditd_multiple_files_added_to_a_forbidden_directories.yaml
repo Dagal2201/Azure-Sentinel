@@ -1,0 +1,46 @@
+id: dd3b3b5a-5a35-4eb8-809d-7b5a2dcb1329
+name: AuditD - Multiple files added to a forbidden directories
+description: |
+  'The purpose of this query is to detect multiple files being added to a user-specified forbidden directories list
+  Fill the "keys" variable in the Kusto query with the keys you used in your AuditD rules.
+  To enable this rule, the following AuditD rules must be applied for each directory you want to monitor:
+    -w <path-to-dir> -p x -k <key>'
+severity: Medium
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- DefenseEvasion
+- Persitence
+- Impact
+relevantTechniques:
+- T1070
+- T1543
+- T1565
+query: |
+  let keys = dynamic([]);
+  let ModFilesCountTh = 5;
+  // gettings events by their event id
+  let auditEventIds = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where key in (keys)
+      | project auditEventId;
+  // getting event ids
+  let auditEvents = ASimLinuxAuditdSyslogV01(disabled=false)
+      | where auditEventId in (auditEventIds);
+  auditEvents
+      | summarize ModFilesCount = count(), ModifiedAt = min(TimeGenerated) by Dvc
+      | where ModFilesCount >= ModFilesCountTh
+      | project ModifiedAt, ModFilesCount, Dvc
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled

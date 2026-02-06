@@ -1,0 +1,41 @@
+id: 61e1858d-9446-4244-bf7a-a539a11da3d1
+name: AuditD - Multiple user login failures
+description: |
+  'This query is designed to detect repeated failed login attempts by users
+  To enable this rule, the following AuditD rules must be applied:
+    -w /var/log/faillog -p wa -k session_faillog
+    -w /var/log/btmp -p wa -k session_btmp'
+severity: Medium
+status: Available
+requiredDataConnectors:
+- connectorId: AuditDSyslog
+  dataTypes:
+  - Syslog
+queryFrequency: 1h
+queryPeriod: 1h
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+- InitialAccess
+- CredentailAccess
+relevantTechniques:
+- T1110.001
+- T1110.002
+- T1110.003
+- T1078
+query: |
+  let failedAttempts = 10;
+  let keys = dynamic(["session_faillog", "session_btmp"]);
+  ASimLinuxAuditdSyslogV01(disabled=false)
+      | where key in (keys)
+      | summarize FailedLoginsCount = count(), FailedLoginAt=min(TimeGenerated) by Dvc
+      | where FailedLoginsCount >= failedAttempts
+      | project FailedLoginAt, Dvc, FailedLoginsCount
+      | order by FailedLoginsCount;
+entityMappings:
+- entityType: Host
+  fieldMappings:
+  - identifier: HostName
+    columnName: Dvc
+version: 1.0.0
+kind: Scheduled
