@@ -1,7 +1,7 @@
 {
     "Name": "Auditd",
     "Author": "ScienceSoft USA Inc.",
-    "Logo": "<img src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Logos/Auditd.svg\" width=\"75px\" height=\"75px\">",
+    "Logo": "https://raw.githubusercontent.com/Dagal2201/Azure-Sentinel/refs/heads/master/Logos/Auditd.svg\" width=\"75px\" height=\"75px\">",
     "Description": "Auditd Solution for MS Sentinel",
     "Parsers": [
         "Parsers/ASimLinuxAuditdSyslogV01.yaml",
@@ -17,7 +17,7 @@
         "Analytic Rules/auditd_hosts_file_changed.yaml",
         "Analytic Rules/auditd_massive_user_deletion_detected.yaml",
         "Analytic Rules/auditd_multiple_chmod_or_chown_execution_attempts_on_distinct_files.yaml",
-        "Analytic Rules/auditd_multiple_cron_jobs_ddded_in_a_short_period_of_time.yaml",
+        "Analytic Rules/auditd_multiple_cron_jobs_added_in_a_short_period_of_time.yaml",
         "Analytic Rules/auditd_multiple_execution_from_forbidden_directories.yaml",
         "Analytic Rules/auditd_multiple_failed_chmod_or_chown_execution_attempts.yaml",
         "Analytic Rules/auditd_multiple_failed_file_and_directory_modifications.yaml",
@@ -37,7 +37,7 @@
     "Workbooks": [
         "Workbooks/Auditd.json"
     ],
-    "BasePath": "C:\\GitHub\\Azure-Sentinel\\Solutions\\Auditd",
+    "BasePath": "https://raw.githubusercontent.com/Dagal2201/Azure-Sentinel/refs/heads/master/Solutions/Auditd",
     "Version": "3.0.0",
     "Metadata": "SolutionMetadata.json",
     "TemplateSpec": true

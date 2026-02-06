@@ -1,5 +1,5 @@
 id: e6f746b1-1e8a-4529-a7f1-d1b69a8a0619
-name: AuditD - Multiple cron jobs ddded in a short period of time
+name: AuditD - Multiple cron jobs added in a short period of time
 description: |
   'The purpose of this query is to detect numerous cron jobs being added within a brief timeframe
   To enable this rule, the following AuditD rules must be applied:
