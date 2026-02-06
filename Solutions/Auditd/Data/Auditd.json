@@ -37,7 +37,7 @@
     "Workbooks": [
         "Workbooks/Auditd.json"
     ],
-    "BasePath": "https://raw.githubusercontent.com/Dagal2201/Azure-Sentinel/refs/heads/master/Solutions/Auditd",
+    "BasePath": "C:\\GitHub\\Azure-Sentinel\\Solutions\\Auditd",
     "Version": "3.0.0",
     "Metadata": "SolutionMetadata.json",
     "TemplateSpec": true

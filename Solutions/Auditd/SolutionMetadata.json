@@ -1,6 +1,6 @@
 {
     "PublisherId": "scnsoft",
-    "offerId": "scnsoft-azure-sentinel-auditd",
+    "offerId": "azure-sentinel-solution-scnsoft-linux-auditd",
     "firstPublishDate": "2026-02-06",
     "lastPublishDate": "2026-02-06",
     "providers": [
